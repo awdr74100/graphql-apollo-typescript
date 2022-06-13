@@ -106,3 +106,39 @@ export const postUpdate = async (
     }),
   };
 };
+
+export const postDelete = async (
+  _: any,
+  { postId }: { postId: string },
+  { prisma }: Context,
+): Promise<PostPayloadType> => {
+  const post = await prisma.post.findUnique({
+    where: {
+      id: parseInt(postId, 10),
+    },
+  });
+
+  console.log(post);
+
+  if (!post) {
+    return {
+      userErrors: [
+        {
+          message: 'Post does not exist',
+        },
+      ],
+      post: null,
+    };
+  }
+
+  await prisma.post.delete({
+    where: {
+      id: parseInt(postId, 10),
+    },
+  });
+
+  return {
+    userErrors: [],
+    post,
+  };
+};
