@@ -1,3 +1,4 @@
+import validator from 'validator';
 import { Context } from '../..';
 
 interface SignupArgs {
@@ -7,16 +8,53 @@ interface SignupArgs {
   bio: string;
 }
 
-export const signup = (
+interface UserPayload {
+  userErrors: {
+    message: string;
+  }[];
+  user: null;
+}
+
+export const signup = async (
   _: any,
   { email, name, password, bio }: SignupArgs,
   { prisma }: Context,
-) => {
-  return prisma.user.create({
-    data: {
-      email,
-      name,
-      password,
-    },
-  });
+): Promise<UserPayload> => {
+  const isEmail = validator.isEmail(email);
+
+  if (!isEmail) {
+    return {
+      userErrors: [{ message: 'Invalid email' }],
+      user: null,
+    };
+  }
+
+  const isValidPassword = validator.isLength(password, { min: 5 });
+
+  if (!isValidPassword) {
+    return {
+      userErrors: [{ message: 'Invalid password' }],
+      user: null,
+    };
+  }
+
+  if (!name || !bio) {
+    return {
+      userErrors: [{ message: 'Invalid name or bio' }],
+      user: null,
+    };
+  }
+
+  return {
+    userErrors: [],
+    user: null,
+  };
+
+  // return prisma.user.create({
+  //   data: {
+  //     email,
+  //     name,
+  //     password,
+  //   },
+  // });
 };
