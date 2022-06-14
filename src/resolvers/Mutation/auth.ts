@@ -1,4 +1,5 @@
 import validator from 'validator';
+import argon2 from 'argon2';
 import { Context } from '../..';
 
 interface SignupArgs {
@@ -44,6 +45,16 @@ export const signup = async (
       user: null,
     };
   }
+
+  const hashedPassword = await argon2.hash(password, { type: argon2.argon2id });
+
+  await prisma.user.create({
+    data: {
+      email,
+      name,
+      password: hashedPassword,
+    },
+  });
 
   return {
     userErrors: [],
