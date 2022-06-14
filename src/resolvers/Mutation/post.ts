@@ -1,5 +1,5 @@
 import { Post, Prisma } from '@prisma/client';
-import { Context } from '../index';
+import { Context } from '../..';
 
 interface PostArgs {
   post: {
