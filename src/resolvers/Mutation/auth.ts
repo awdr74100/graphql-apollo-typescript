@@ -4,10 +4,19 @@ import jwt from 'jsonwebtoken';
 import { Context } from '../..';
 
 interface SignupArgs {
-  email: string;
+  credentials: {
+    email: string;
+    password: string;
+  };
   name: string;
-  password: string;
   bio: string;
+}
+
+interface SigninArgs {
+  credentials: {
+    email: string;
+    password: string;
+  };
 }
 
 interface UserPayload {
@@ -19,9 +28,11 @@ interface UserPayload {
 
 export const signup = async (
   _: any,
-  { email, name, password, bio }: SignupArgs,
+  { credentials, name, bio }: SignupArgs,
   { prisma }: Context,
 ): Promise<UserPayload> => {
+  const { email, password } = credentials;
+
   const isEmail = validator.isEmail(email);
 
   if (!isEmail) {
@@ -63,6 +74,44 @@ export const signup = async (
       userId: user.id,
     },
   });
+
+  const secret = process.env.JWT_ACCESS_TOKEN!;
+  const token = jwt.sign({ userId: user.id }, secret, { expiresIn: '10h' });
+
+  return {
+    userErrors: [],
+    token,
+  };
+};
+
+export const signin = async (
+  _: any,
+  { credentials }: SigninArgs,
+  { prisma }: Context,
+): Promise<UserPayload> => {
+  const { email, password } = credentials;
+
+  const user = await prisma.user.findUnique({
+    where: {
+      email,
+    },
+  });
+
+  if (!user) {
+    return {
+      userErrors: [{ message: 'Invalid credentials' }],
+      token: null,
+    };
+  }
+
+  const isMatch = await argon2.verify(user.password, password);
+
+  if (!isMatch) {
+    return {
+      userErrors: [{ message: 'Invalid credentials' }],
+      token: null,
+    };
+  }
 
   const secret = process.env.JWT_ACCESS_TOKEN!;
   const token = jwt.sign({ userId: user.id }, secret, { expiresIn: '10h' });
