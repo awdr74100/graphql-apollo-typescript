@@ -57,11 +57,15 @@ export const signup = async (
     },
   });
 
-  const token = jwt.sign(
-    { userId: user.id, email: user.email },
-    `${process.env.JWT_ACCESS_TOKEN}`,
-    { expiresIn: '10h' },
-  );
+  await prisma.profile.create({
+    data: {
+      bio,
+      userId: user.id,
+    },
+  });
+
+  const secret = process.env.JWT_ACCESS_TOKEN!;
+  const token = jwt.sign({ userId: user.id }, secret, { expiresIn: '10h' });
 
   return {
     userErrors: [],
