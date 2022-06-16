@@ -18,9 +18,20 @@ interface PostPayloadType {
 export const postCreate = async (
   _: any,
   { post }: PostArgs,
-  { prisma }: Context,
+  { prisma, userInfo }: Context,
 ): Promise<PostPayloadType> => {
   const { title, content } = post;
+
+  if (!userInfo) {
+    return {
+      userErrors: [
+        {
+          message: 'Forbidden access (unauthenticated)',
+        },
+      ],
+      post: null,
+    };
+  }
 
   if (!title || !content) {
     return {
@@ -39,7 +50,7 @@ export const postCreate = async (
       data: {
         title,
         content,
-        authorId: 1,
+        authorId: userInfo.userId,
       },
     }),
   };
