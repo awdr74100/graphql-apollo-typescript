@@ -10,6 +10,18 @@ export const me = (_: any, __: any, { prisma, userInfo }: Context) => {
   });
 };
 
+export const profile = (
+  _: any,
+  { userId }: { userId: string },
+  { prisma }: Context,
+) => {
+  return prisma.profile.findUnique({
+    where: {
+      userId: parseInt(userId, 10),
+    },
+  });
+};
+
 export const posts = (_: any, __: any, { prisma }: Context) => {
   return prisma.post.findMany({
     orderBy: [
