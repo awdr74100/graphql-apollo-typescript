@@ -190,3 +190,77 @@ export const postDelete = async (
     post,
   };
 };
+
+export const postPublish = async (
+  _: any,
+  { postId }: { postId: string },
+  { prisma, userInfo }: Context,
+): Promise<PostPayloadType> => {
+  if (!userInfo) {
+    return {
+      userErrors: [
+        {
+          message: 'Forbidden access (unauthenticated)',
+        },
+      ],
+      post: null,
+    };
+  }
+
+  const error = await canUserMutatePost({
+    userId: userInfo.userId,
+    postId: parseInt(postId, 10),
+    prisma,
+  });
+
+  if (error) return error;
+
+  return {
+    userErrors: [],
+    post: prisma.post.update({
+      data: {
+        published: true,
+      },
+      where: {
+        id: parseInt(postId, 10),
+      },
+    }),
+  };
+};
+
+export const postUnpublish = async (
+  _: any,
+  { postId }: { postId: string },
+  { prisma, userInfo }: Context,
+): Promise<PostPayloadType> => {
+  if (!userInfo) {
+    return {
+      userErrors: [
+        {
+          message: 'Forbidden access (unauthenticated)',
+        },
+      ],
+      post: null,
+    };
+  }
+
+  const error = await canUserMutatePost({
+    userId: userInfo.userId,
+    postId: parseInt(postId, 10),
+    prisma,
+  });
+
+  if (error) return error;
+
+  return {
+    userErrors: [],
+    post: prisma.post.update({
+      data: {
+        published: false,
+      },
+      where: {
+        id: parseInt(postId, 10),
+      },
+    }),
+  };
+};
