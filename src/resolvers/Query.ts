@@ -10,16 +10,25 @@ export const me = (_: any, __: any, { prisma, userInfo }: Context) => {
   });
 };
 
-export const profile = (
+export const profile = async (
   _: any,
   { userId }: { userId: string },
-  { prisma }: Context,
+  { prisma, userInfo }: Context,
 ) => {
-  return prisma.profile.findUnique({
+  const isMyProfile = parseInt(userId) === userInfo?.userId;
+
+  const profile = await prisma.profile.findUnique({
     where: {
       userId: parseInt(userId, 10),
     },
   });
+
+  if (!profile) return null;
+
+  return {
+    ...profile,
+    isMyProfile,
+  };
 };
 
 export const posts = (_: any, __: any, { prisma }: Context) => {
